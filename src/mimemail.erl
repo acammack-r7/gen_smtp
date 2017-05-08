@@ -62,6 +62,7 @@
 -define(DEFAULT_OPTIONS, [
 		{encoding, get_default_encoding()}, % default encoding is utf-8 if we can find the iconv module
 		{decode_attachments, true}, % should we decode any base64/quoted printable attachments?
+		{parse_attached_messages, true}, % should we decode any message/rfc822 attachments?
 		{allow_missing_version, true}, % should we assume default mime version
 		{default_mime_version, ?DEFAULT_MIME_VERSION} % default mime version
 	]).
@@ -272,9 +273,14 @@ decode_component(Headers, Body, MimeVsn = <<"1.0", _/binary>>, Options) ->
 					{<<"multipart">>, SubType, Headers, Parameters2, split_body_by_boundary(Body, list_to_binary(["--", Boundary]), MimeVsn, Options)}
 			end;
 		{<<"message">>, <<"rfc822">>, Parameters} ->
-			{NewHeaders, NewBody} = parse_headers(Body),
 			Parameters2 = [{<<"content-type-params">>, Parameters}, {<<"disposition">>, Disposition}, {<<"disposition-params">>, DispositionParams}],
-			{<<"message">>, <<"rfc822">>, Headers, Parameters2, decode(NewHeaders, NewBody, Options)};
+			case proplists:get_value(parse_attached_messages, Options, true) of
+				true ->
+					{NewHeaders, NewBody} = parse_headers(Body),
+					{<<"message">>, <<"rfc822">>, Headers, Parameters2, decode(NewHeaders, NewBody, Options)};
+				false ->
+					{<<"message">>, <<"rfc822">>, Headers, Parameters2, Body}
+			end;
 		{Type, SubType, Parameters} ->
 			%io:format("body is ~s/~s~n", [Type, SubType]),
 			Parameters2 = [{<<"content-type-params">>, Parameters}, {<<"disposition">>, Disposition}, {<<"disposition-params">>, DispositionParams}],

@@ -439,7 +439,7 @@ parse_headers(Body, <<H, Tail/binary>>, []) when H =:= $\s; H =:= $\t ->
 parse_headers(Body, <<H, T/binary>>, Headers) when H =:= $\s; H =:= $\t ->
 	% folded headers
 	[{FieldName, OldFieldValue} | OtherHeaders] = Headers,
-	FieldValue = list_to_binary([OldFieldValue, T]),
+	FieldValue = list_to_binary([OldFieldValue, " ", binstr:strip(T, left)]),
 	%io:format("~p = ~p~n", [FieldName, FieldValue]),
 	case binstr:strpos(Body, "\r\n") of
 		0 ->

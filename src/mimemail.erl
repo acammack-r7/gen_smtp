@@ -917,6 +917,8 @@ get_default_encoding() ->
 % convert some common invalid character names into the correct ones
 fix_encoding(Encoding) when Encoding == <<"utf8">>; Encoding == <<"UTF8">> ->
 	<<"UTF-8">>;
+fix_encoding(Encoding) when Encoding == <<"cp-850">> ->
+	<<"cp850">>;
 fix_encoding(Encoding) ->
 	Encoding.
 
